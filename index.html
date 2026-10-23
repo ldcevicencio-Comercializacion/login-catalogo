@@ -1,1 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Acceso Catálogo</title>
+  <style>
+    body {
+      background-color: #172d1f;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 16px;
+      border: 1px solid rgba(200, 146, 67, 0.5);
+      text-align: center;
+      max-width: 320px;
+      width: 100%;
+    }
+    h2 {
+      color: #eed2a3;
+      margin-top: 0;
+    }
+    .spinner {
+      border: 4px solid rgba(255,255,255,0.2);
+      border-top: 4px solid #eed2a3;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto 0;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Catálogo Sembrando Vida</h2>
+    <p id="estado">Iniciando acceso seguro...</p>
+    <div class="spinner" id="spinner"></div>
+  </div>
 
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    // Sustituye con tus credenciales reales de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbBSAqr-DrT6WNxQU4Az88iTaEqkGN_Hs",
+  authDomain: "catalogocomercialsembrandovida.firebaseapp.com",
+  projectId: "catalogocomercialsembrandovida",
+  storageBucket: "catalogocomercialsembrandovida.firebasestorage.app",
+  messagingSenderId: "341320571373",
+  appId: "1:341320571373:web:79ecb20c4e1420fd172fe4"
+    };
+
+    try {
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+
+      const params = new URLSearchParams(window.location.search);
+      const proveedor = params.get('provider') === 'facebook' 
+        ? new FacebookAuthProvider() 
+        : new GoogleAuthProvider();
+
+      const credencial = await signInWithPopup(auth, proveedor);
+      const datosUsuario = {
+        nombre: credencial.user.displayName,
+        correo: credencial.user.email,
+        foto: credencial.user.photoURL,
+        uid: credencial.user.uid
+      };
+
+      if (window.opener) {
+        window.opener.postMessage({ tipo: 'LOGIN_EXITOSO', usuario: datosUsuario }, '*');
+      }
+
+      document.getElementById('estado').textContent = "¡Acceso concedido! Cerrando...";
+      setTimeout(() => window.close(), 1000);
+    } catch (error) {
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('estado').textContent = "Error: " + error.message;
+    }
+  </script>
+</body>
+</html>
